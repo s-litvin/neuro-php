@@ -24,6 +24,7 @@ class Perceptron
      */
     private $layers;
     private $epoch = 0;
+    private $outputValues;
 
     public function __construct($learningRate = 0.98, $errorTrashhold = 0.0001)
     {
@@ -128,8 +129,8 @@ class Perceptron
     public function link($id1, $id2, $weight = null)
     {
         if ($weight === null) {
-            $weight = rand(0, 1);
-            if (rand(0, 1) > 0.5) {
+            $weight = rand(1, 100) / 100;
+            if (rand(0, 1) == 0) {
                 $weight *= -1;
             }
         }
@@ -139,6 +140,10 @@ class Perceptron
 
         $n1['links'][] = ['id' => $id2, 'weight' => $weight, 'type' => 'right'];
         $n2['links'][] = ['id' => $id1, 'weight' => $weight, 'type' => 'left'];
+
+        $n1['links'] = array_values($n1['links']);
+        $n2['links'] = array_values($n2['links']);
+
         $this->updateNeuron($id1, $n1);
         $this->updateNeuron($id2, $n2);
     }
@@ -221,6 +226,9 @@ class Perceptron
 
     public function forwardPass()
     {
+        $lastLayer = end($this->layers);
+        $this->outputValues = [];
+
         foreach ($this->layers as $layer) {
 
             $neurones = $this->getNeuronsByLayer($layer);
@@ -239,6 +247,10 @@ class Perceptron
                 $neuron['cell']->calcOutput($inputSum);
 
                 $this->updateNeuron($neuron['id'], $neuron);
+
+                if ($layer == $lastLayer) {
+                    $this->outputValues[$neuron['id']][] = $neuron['cell']->getOutput();
+                }
             }
         }
     }
@@ -252,7 +264,7 @@ class Perceptron
         for ($li = count($this->layers) - 1; $li >= 0; $li--) {
             $neurones = $this->getNeuronsByLayer($this->layers[$li]);
 
-            foreach ($neurones as $neuron) {
+            foreach ($neurones as $index => $neuron) {
                 $rightLinks = $this->getNeuronLinks($neuron, 'right');
 
                 if (!$rightLinks) { // если это последний слой, то ошибка вычисляется разницей ожидания и выхода
@@ -313,4 +325,16 @@ class Perceptron
         return true;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getOutputValues()
+    {
+        return $this->outputValues;
+    }
+
+    public function normalizeInput($value, $min, $max, $toMin = -1, $toMax = 1)
+    {
+        return (($value - $min) * ($toMax - $toMin)) / ($max - $min) + $toMin;
+    }
 }
