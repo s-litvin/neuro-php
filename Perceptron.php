@@ -42,7 +42,6 @@ class Perceptron
             'cell' => $cell,
             'links' => [],
             'layer' => $layer,
-            'bias' => $bias,
         ];
 
         $this->indexLayers();
@@ -177,6 +176,9 @@ class Perceptron
 
             foreach ($neuronesLeft as $leftNeuron) {
                 foreach ($neuronesRight as $rightNeuron) {
+                    if ($rightNeuron['cell']->isBias()) {
+                        continue;
+                    }
                     $this->link($leftNeuron['id'], $rightNeuron['id']);
                 }
             }
@@ -195,6 +197,11 @@ class Perceptron
                 }
                 $this->addNeuron(new Cell($layer), $letter . $layer . $number, $layer);
             }
+
+            if ($layer != count($neuronsCountArray) - 1) {
+                // Bias neuron
+                $this->addNeuron(new Cell($layer, true), 'b' . $layer . ($number + 1), $layer);
+            }
         }
 
         if ($linkAutomatically) {
@@ -208,6 +215,9 @@ class Perceptron
 
         $key = 0;
         foreach ($firstLayerNeurones as $firstLayerNeuron) {
+            if ($firstLayerNeuron['cell']->isBias()) {
+                continue;
+            }
             $firstLayerNeuron['cell']->setInput($inputsArray[$key++]);
             $this->updateNeuron($firstLayerNeuron['id'], $firstLayerNeuron);
         }
@@ -242,14 +252,12 @@ class Perceptron
                     $inputSum += $leftLink['neuron']['cell']->getOutput() * $leftLink['weight'];
                 }
 
-                $inputSum += $neuron['bias'];
-
                 $neuron['cell']->calcOutput($inputSum);
 
-                $this->updateNeuron($neuron['id'], $neuron);
+//                $this->updateNeuron($neuron['id'], $neuron);
 
                 if ($layer == $lastLayer) {
-                    $this->outputValues[$neuron['id']][] = $neuron['cell']->getOutput();
+                    $this->outputValues[$neuron['id']] = $neuron['cell']->getOutput();
                 }
             }
         }
@@ -279,7 +287,7 @@ class Perceptron
                     $neuron['cell']->setError($errorsSum);
                 }
 
-                $this->updateNeuron($neuron['id'], $neuron);
+//                $this->updateNeuron($neuron['id'], $neuron);
 
                 if ($li === count($this->layers) - 1) {
                     $this->totalError += $neuron['cell']->getError();
@@ -315,9 +323,9 @@ class Perceptron
 
     public function backPropagation()
     {
-        if ($this->getEpoch() > 1 && $this->getErrorTrashold() > abs($this->getTotalError())) {
-            return false;
-        }
+//        if ($this->getEpoch() > 1 && $this->getErrorTrashold() > abs($this->getTotalError())) {
+//            return false;
+//        }
 
         $this->calcErrors();
         $this->updateWeights();
@@ -333,7 +341,7 @@ class Perceptron
         return $this->outputValues;
     }
 
-    public function normalizeInput($value, $min, $max, $toMin = -1, $toMax = 1)
+    public static function normalizeInput($value, $min, $max, $toMin = -1, $toMax = 1)
     {
         return (($value - $min) * ($toMax - $toMin)) / ($max - $min) + $toMin;
     }

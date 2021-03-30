@@ -6,8 +6,9 @@ class Cell
     private $targetOutput;
     private $output;
     private $input;
+    private $isBias;
 
-    public function __construct($layer)
+    public function __construct($layer, $isBias = false)
     {
         $this->setInput(0);
         $this->setOutput(0);
@@ -15,6 +16,7 @@ class Cell
         $this->error = 0;
         $this->derivative = 0;
         $this->layer = $layer;
+        $this->isBias = $isBias;
     }
 
     /**
@@ -74,7 +76,9 @@ class Cell
 
     public function calcOutput($inputSum)
     {
-        if ($this->layer === 0) {
+        if ($this->isBias()) {
+            $this->setOutput(1);
+        } else if ($this->layer === 0) {
             $this->setOutput($inputSum);
         } else {
             $this->setOutput(1 / (1 + pow(2.718, -1 * $inputSum)));
@@ -83,6 +87,11 @@ class Cell
         $this->derivative = $this->getOutput() * (1 - $this->getOutput());
 
         return $this->getOutput();
+    }
+
+    public function isBias()
+    {
+        return $this->isBias;
     }
 
 }
