@@ -7,7 +7,6 @@ include_once('Perceptron.php');
 const DEBUG            = true;
 const FILENAME         = 'main.txt';
 const TRAIN_DATA_FILENAME = 'Shuttle_withoutdupl_norm_v01.csv';
-const TEST_DATA_FILENAME = 'test_shuttle.json';
 const LOG_FILENAME     = FILENAME . '_training.log';
 const OUTLIER_DATA_MARK  = 'o';
 const TRAIN_DATASET_LIMIT = 700;
