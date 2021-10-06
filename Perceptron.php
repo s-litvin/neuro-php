@@ -10,11 +10,11 @@ class Perceptron
     /**
      * @var int
      */
-    private $totalError = 0;
+    private $totalError;
     /**
      * @var float|mixed
      */
-    private $errorTrashold = 0.0001;
+    private $errorTrashold;
     /**
      * @var array
      */
@@ -26,8 +26,9 @@ class Perceptron
     private $epoch = 0;
     private $outputValues;
 
-    public function __construct($learningRate = 0.98, $errorTrashhold = 0.0001)
+    public function __construct($activationFunction = Cell::SIGMOID, $learningRate = 0.98, $errorTrashhold = 0.0001)
     {
+        $this->activation = $activationFunction;
         $this->neurones = [];
         $this->layers = [];
         $this->totalError = 0;
@@ -195,12 +196,12 @@ class Perceptron
                 } else if ($layer == count($neuronsCountArray) - 1) {
                     $letter = 'y';
                 }
-                $this->addNeuron(new Cell($layer), $letter . $layer . $number, $layer);
+                $this->addNeuron(new Cell($layer, false, $this->activation), $letter . $layer . $number, $layer);
             }
 
             if ($layer != count($neuronsCountArray) - 1) {
                 // Bias neuron
-                $this->addNeuron(new Cell($layer, true), 'b' . $layer . ($number + 1), $layer);
+                $this->addNeuron(new Cell($layer, true, $this->activation), 'b' . $layer . ($number + 1), $layer);
             }
         }
 
@@ -254,8 +255,6 @@ class Perceptron
 
                 $neuron['cell']->calcOutput($inputSum);
 
-//                $this->updateNeuron($neuron['id'], $neuron);
-
                 if ($layer == $lastLayer) {
                     $this->outputValues[$neuron['id']] = $neuron['cell']->getOutput();
                 }
@@ -286,8 +285,6 @@ class Perceptron
 
                     $neuron['cell']->setError($errorsSum);
                 }
-
-//                $this->updateNeuron($neuron['id'], $neuron);
 
                 if ($li === count($this->layers) - 1) {
                     $this->totalError += $neuron['cell']->getError();
@@ -323,10 +320,6 @@ class Perceptron
 
     public function backPropagation()
     {
-//        if ($this->getEpoch() > 1 && $this->getErrorTrashold() > abs($this->getTotalError())) {
-//            return false;
-//        }
-
         $this->calcErrors();
         $this->updateWeights();
 

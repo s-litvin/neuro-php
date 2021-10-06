@@ -3,12 +3,17 @@
 
 class Cell
 {
+    const RELU = 'relu';
+    const LEAKYRELU = 'leakyrelu';
+    const SIGMOID = 'sigmoid';
+
     private $targetOutput;
     private $output;
     private $input;
     private $isBias;
+    private $activation;
 
-    public function __construct($layer, $isBias = false)
+    public function __construct($layer, $isBias = false, $activation = self::SIGMOID)
     {
         $this->setInput(0);
         $this->setOutput(0);
@@ -17,6 +22,7 @@ class Cell
         $this->derivative = 0;
         $this->layer = $layer;
         $this->isBias = $isBias;
+        $this->activation = $activation;
     }
 
     /**
@@ -49,7 +55,7 @@ class Cell
 
     public function getError()
     {
-        return $this->error;
+        return is_nan($this->error) ? 0 : $this->error;
     }
 
     public function getDerivative()
@@ -81,12 +87,41 @@ class Cell
         } else if ($this->layer === 0) {
             $this->setOutput($inputSum);
         } else {
-            $this->setOutput(1 / (1 + pow(2.718, -1 * $inputSum)));
+            $this->setOutput($this->calcActivation($inputSum));
         }
 
-        $this->derivative = $this->getOutput() * (1 - $this->getOutput());
+        $this->derivative = $this->calcDerivative();
 
         return $this->getOutput();
+    }
+
+    protected function calcActivation($inputSum)
+    {
+        switch ($this->activation) {
+            case self::RELU:
+                $calcSum = $inputSum < 0 ? 0 : $inputSum;
+                break;
+            case self::LEAKYRELU:
+                $calcSum = $inputSum < 0 ? 0.01 * $inputSum : $inputSum;
+                break;
+            case self::SIGMOID:
+            default:
+                $calcSum = 1 / (1 + pow(2.718, -1 * $inputSum));
+        }
+
+        return $calcSum;
+    }
+
+    protected function calcDerivative()
+    {
+        switch ($this->activation) {
+            case self::RELU:
+            case self::LEAKYRELU:
+                return $this->getOutput() < 0 ? 0 : 1;
+            case self::SIGMOID:
+            default:
+                return $this->getOutput() * (1 - $this->getOutput());
+        }
     }
 
     public function isBias()

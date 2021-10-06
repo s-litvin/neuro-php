@@ -15,7 +15,7 @@ for ($i = 0; $i < 100; $i++) {
     $dataset[] = $situations[0];
 }
 
-$perceptron = new Perceptron(1, 0.01);
+$perceptron = new Perceptron(Cell::SIGMOID, 1, 0.01);
 
 $perceptron->createLayers([2, 4, 1]);
 
@@ -52,5 +52,3 @@ echo '[1,0] : ' . json_encode($perceptron->getOutputValues()) . PHP_EOL;
 $perceptron->setInputVector([1, 1]);
 $perceptron->forwardPass();
 echo '[1,1] : ' . json_encode($perceptron->getOutputValues()) . PHP_EOL;
-
-
